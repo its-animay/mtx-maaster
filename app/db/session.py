@@ -8,8 +8,16 @@ from app.core.config import get_settings
 from app.schemas.exam import ExamResponse, ExamSyllabusItem
 from app.schemas.master import SubjectResponse, TopicResponse
 from app.schemas.question import OptionSchema, QuestionResponse, QuestionType
+from app.schemas.test_instructions import TestInstructionsResponse, InstructionBlock, ProctoringRules
 from app.schemas.test import QuestionReference, TestResponse, TestSection, SectionMarkingScheme, TestPattern
-from app.schemas.test_series import SyllabusCoverageItem, TestSeriesResponse, SeriesStats
+from app.schemas.test_series import (
+    SyllabusCoverageItem,
+    TestSeriesResponse,
+    SeriesStats,
+    AccessConfig,
+    AvailabilityWindow,
+    SeriesCounters,
+)
 
 
 def _dt(value: datetime) -> datetime:
@@ -69,6 +77,7 @@ class Database:
         self.db.tests.create_index([("series_id", ASCENDING), ("status", ASCENDING), ("is_active", ASCENDING)])
         self.db.tests.create_index([("questions.question_id", ASCENDING)])
         self.db.tests.create_index([("status", ASCENDING), ("availability.starts_at", ASCENDING)])
+        self.db.test_instructions.create_index([("test_id", ASCENDING)], unique=True)
 
     # Subject methods
     def insert_subject(self, subject: SubjectResponse) -> None:
@@ -349,6 +358,12 @@ class Database:
             payload["syllabus_coverage"] = [item.model_dump() for item in series.syllabus_coverage]
         if series.stats:
             payload["stats"] = series.stats.model_dump()
+        if series.access:
+            payload["access"] = series.access.model_dump()
+        if series.availability:
+            payload["availability"] = series.availability.model_dump()
+        if series.counters:
+            payload["counters"] = series.counters.model_dump()
         self.db.test_series.insert_one(payload)
 
     def update_test_series(self, series: TestSeriesResponse) -> None:
@@ -357,6 +372,12 @@ class Database:
             payload["syllabus_coverage"] = [item.model_dump() for item in series.syllabus_coverage]
         if series.stats:
             payload["stats"] = series.stats.model_dump()
+        if series.access:
+            payload["access"] = series.access.model_dump()
+        if series.availability:
+            payload["availability"] = series.availability.model_dump()
+        if series.counters:
+            payload["counters"] = series.counters.model_dump()
         self.db.test_series.update_one({"series_id": series.series_id}, {"$set": payload})
 
     def delete_test_series(self, series_id: str) -> None:
@@ -376,11 +397,15 @@ class Database:
 
     def list_test_series(
         self,
+        exam_id: Optional[str] = None,
         target_exam_id: Optional[str] = None,
         series_type: Optional[str] = None,
         status: Optional[str] = None,
         is_active: Optional[bool] = None,
         tags: Optional[List[str]] = None,
+        difficulty: Optional[int] = None,
+        language: Optional[str] = None,
+        language_code: Optional[str] = None,
         skip: int = 0,
         limit: int = 50,
         sort_by: str = "display_order",
@@ -388,6 +413,8 @@ class Database:
         include_total: bool = False,
     ) -> tuple[List[TestSeriesResponse], int]:
         query: dict = {}
+        if exam_id:
+            query["exam_id"] = exam_id
         if target_exam_id:
             query["target_exam_id"] = target_exam_id
         if series_type:
@@ -398,12 +425,19 @@ class Database:
             query["is_active"] = is_active
         if tags:
             query["tags"] = {"$all": tags}
+        if difficulty is not None:
+            query["difficulty"] = difficulty
+        if language:
+            query["language"] = language
+        if language_code:
+            query["language_codes"] = language_code
 
         sort_fields = {
             "display_order": "display_order",
             "created_at": "created_at",
             "updated_at": "updated_at",
             "name": "name",
+            "published_at": "published_at",
         }
         sort_field = sort_fields.get(sort_by, "display_order")
         sort_dir = ASCENDING if sort_order.lower() != "desc" else DESCENDING
@@ -420,23 +454,37 @@ class Database:
     def _series_from_doc(self, doc: dict) -> TestSeriesResponse:
         syllabus_coverage = [SyllabusCoverageItem(**item) for item in doc.get("syllabus_coverage", [])]
         stats = SeriesStats(**doc["stats"]) if doc.get("stats") else None
+        access = AccessConfig(**doc["access"]) if doc.get("access") else None
+        availability = AvailabilityWindow(**doc["availability"]) if doc.get("availability") else None
+        counters = SeriesCounters(**doc["counters"]) if doc.get("counters") else None
         return TestSeriesResponse(
             series_id=doc["series_id"],
             code=doc["code"],
             slug=doc["slug"],
-            name=doc["name"],
+            name=doc.get("name"),
+            title=doc.get("title"),
             description=doc.get("description"),
-            target_exam_id=doc["target_exam_id"],
+            description_i18n=doc.get("description_i18n"),
+            target_exam_id=doc.get("target_exam_id"),
+            exam_id=doc.get("exam_id"),
             series_type=doc.get("series_type"),
             difficulty_level=doc.get("difficulty_level"),
+            difficulty=doc.get("difficulty"),
             total_tests=doc.get("total_tests"),
             syllabus_coverage=syllabus_coverage,
             status=doc.get("status", "draft"),
             is_active=bool(doc.get("is_active", True)),
             available_from=_dt(doc["available_from"]) if doc.get("available_from") else None,
             available_until=_dt(doc["available_until"]) if doc.get("available_until") else None,
+            availability=availability,
             tags=doc.get("tags", []),
             language=doc.get("language"),
+            language_codes=doc.get("language_codes", []),
+            new_until=_dt(doc["new_until"]) if doc.get("new_until") else None,
+            published_at=_dt(doc["published_at"]) if doc.get("published_at") else None,
+            archived_at=_dt(doc["archived_at"]) if doc.get("archived_at") else None,
+            access=access,
+            counters=counters,
             version=doc.get("version"),
             display_order=int(doc.get("display_order", 0)),
             stats=stats,
@@ -613,6 +661,35 @@ class Database:
             language=doc.get("language"),
             metadata=doc.get("metadata"),
             questions=questions,
+            created_at=_dt(doc["created_at"]),
+            updated_at=_dt(doc["updated_at"]),
+        )
+
+    # Test instructions methods
+    def upsert_test_instructions(self, doc: TestInstructionsResponse) -> None:
+        payload = doc.model_dump()
+        payload["sections"] = [section.model_dump() for section in doc.sections]
+        if doc.proctoring:
+            payload["proctoring"] = doc.proctoring.model_dump()
+        self.db.test_instructions.replace_one({"test_id": doc.test_id}, payload, upsert=True)
+
+    def get_test_instructions(self, test_id: str) -> Optional[TestInstructionsResponse]:
+        doc = self.db.test_instructions.find_one({"test_id": test_id})
+        return self._instructions_from_doc(doc) if doc else None
+
+    def delete_test_instructions(self, test_id: str) -> None:
+        self.db.test_instructions.delete_one({"test_id": test_id})
+
+    def _instructions_from_doc(self, doc: dict) -> TestInstructionsResponse:
+        sections = [InstructionBlock(**section) for section in doc.get("sections", [])]
+        proctoring = ProctoringRules(**doc["proctoring"]) if doc.get("proctoring") else None
+        return TestInstructionsResponse(
+            instruction_id=doc["instruction_id"],
+            test_id=doc["test_id"],
+            summary=doc.get("summary"),
+            sections=sections,
+            proctoring=proctoring,
+            metadata=doc.get("metadata"),
             created_at=_dt(doc["created_at"]),
             updated_at=_dt(doc["updated_at"]),
         )
