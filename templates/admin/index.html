@@ -1,0 +1,13 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Dashboard - Admin Panel{% endblock %}
+
+{% block content %}
+<h2>Welcome to Admin Dashboard</h2>
+<p>Select an action below:</p>
+<ul>
+    <li><a href="/admin/subjects/create">Create New Subject</a></li>
+    <li><a href="/admin/topics/create">Create New Topic</a></li>
+    <li><a href="/admin/questions/create">Create New Question</a></li>
+</ul>
+{% endblock %}

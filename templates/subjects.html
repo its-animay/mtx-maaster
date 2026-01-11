@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Subjects - Master Service{% endblock %}
+
+{% block content %}
+<h1>Subjects List</h1>
+<p>Here are the subjects currently available in the system:</p>
+
+{% if subjects %}
+<table>
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Slug</th>
+            <th>Description</th>
+            <th>Status</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for subject in subjects %}
+        <tr>
+            <td>{{ subject.name }}</td>
+            <td>{{ subject.slug }}</td>
+            <td>{{ subject.description }}</td>
+            <td>
+                {% if subject.is_active %}
+                <span style="color: green;">Active</span>
+                {% else %}
+                <span style="color: red;">Inactive</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p>No subjects found.</p>
+{% endif %}
+
+<br>
+<a href="/" class="button">Back to Home</a>
+{% endblock %}

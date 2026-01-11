@@ -5,6 +5,8 @@ from app.api.v1.api import api_router
 from app.core.config import get_settings
 from app.db.session import init_db
 from app.api.v1.endpoints.security import seed_demo_key_from_env
+from app.web.routes import web_router
+from fastapi.staticfiles import StaticFiles
 
 settings = get_settings()
 app = FastAPI(title=settings.project_name)
@@ -26,3 +28,6 @@ def startup() -> None:
 
 
 app.include_router(api_router, prefix=settings.api_prefix)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.include_router(web_router)

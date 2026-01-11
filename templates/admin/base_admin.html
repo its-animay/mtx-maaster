@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin Panel{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='/css/styles.css') }}">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <div id="branding">
+                <h1><span class="highlight">Admin</span> Panel</h1>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="/">Public Site</a></li>
+                    <li class="current"><a href="/admin">Dashboard</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="admin-nav">
+            <a href="/admin">Dashboard</a>
+            <a href="/admin/subjects/create">New Subject</a>
+            <a href="/admin/topics/create">New Topic</a>
+            <a href="/admin/questions/create">New Question</a>
+        </div>
+
+        {% if SUCCESS_MSG %}
+        <div class="alert alert-success">{{ SUCCESS_MSG }}</div>
+        {% endif %}
+        {% if ERROR_MSG %}
+        <div class="alert alert-danger">{{ ERROR_MSG }}</div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+
+</html>

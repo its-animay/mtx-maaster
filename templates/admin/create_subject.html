@@ -1,0 +1,22 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Create Subject - Admin Panel{% endblock %}
+
+{% block content %}
+<h2>Create New Subject</h2>
+<form action="/admin/subjects/create" method="post">
+    <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+    </div>
+    <div class="form-group">
+        <label for="slug">Slug (URL-friendly):</label>
+        <input type="text" id="slug" name="slug" required>
+    </div>
+    <div class="form-group">
+        <label for="description">Description:</label>
+        <textarea id="description" name="description" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn-submit">Create Subject</button>
+</form>
+{% endblock %}

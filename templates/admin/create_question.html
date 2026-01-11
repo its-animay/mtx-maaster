@@ -1,0 +1,117 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Create Question - Admin Panel{% endblock %}
+
+{% block content %}
+<h2>Create New Question</h2>
+<form action="/admin/questions/create" method="post">
+    <div class="form-group">
+        <label for="subject_id">Subject:</label>
+        <select id="subject_id" name="subject_id" required onchange="filterTopics()">
+            <option value="">-- Select Subject --</option>
+            {% for subject in subjects %}
+            <option value="{{ subject.id }}">{{ subject.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label for="topic_id">Topic:</label>
+        <!-- In a real app we'd fetch these dynamically via AJAX. 
+                 For now, we'll load all and filter via JS or just list them all. 
+                 Let's stick to simple list for MVP or fetch all. -->
+        <select id="topic_id" name="topic_id" required>
+            <option value="">-- Select Topic --</option>
+            {% for topic in topics %}
+            <option value="{{ topic.id }}" data-subject="{{ topic.subject_id }}">{{ topic.name }} ({{ topic.subject_id
+                }})</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="form-group">
+        <label>Question Type:</label>
+        <label><input type="radio" name="question_type" value="MCQ" checked onclick="toggleType('MCQ')"> MCQ</label>
+        <label><input type="radio" name="question_type" value="NAT" onclick="toggleType('NAT')"> NAT</label>
+    </div>
+
+    <div class="form-group">
+        <label for="text">Question Text:</label>
+        <textarea id="text" name="text" rows="3" required></textarea>
+    </div>
+
+    <div class="form-group">
+        <label for="difficulty">Difficulty (1-5):</label>
+        <input type="number" id="difficulty" name="difficulty" min="1" max="5" value="1" required>
+    </div>
+
+    <!-- MCQ Section -->
+    <div id="mcq-section">
+        <h3>Options</h3>
+        <div class="form-group">
+            <label>Option A (ID: opt_a):</label>
+            <input type="text" name="option_a">
+        </div>
+        <div class="form-group">
+            <label>Option B (ID: opt_b):</label>
+            <input type="text" name="option_b">
+        </div>
+        <div class="form-group">
+            <label>Option C (ID: opt_c):</label>
+            <input type="text" name="option_c">
+        </div>
+        <div class="form-group">
+            <label>Option D (ID: opt_d):</label>
+            <input type="text" name="option_d">
+        </div>
+        <div class="form-group">
+            <label for="correct_option_id">Correct Option ID:</label>
+            <select name="correct_option_id_select">
+                <option value="opt_a">Option A</option>
+                <option value="opt_b">Option B</option>
+                <option value="opt_c">Option C</option>
+                <option value="opt_d">Option D</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- NAT Section -->
+    <div id="nat-section" style="display: none;">
+        <div class="form-group">
+            <label for="answer_value">Correct Answer Value:</label>
+            <input type="text" id="answer_value" name="answer_value">
+        </div>
+    </div>
+
+    <button type="submit" class="btn-submit">Create Question</button>
+</form>
+
+<script>
+    function toggleType(type) {
+        if (type === 'MCQ') {
+            document.getElementById('mcq-section').style.display = 'block';
+            document.getElementById('nat-section').style.display = 'none';
+        } else {
+            document.getElementById('mcq-section').style.display = 'none';
+            document.getElementById('nat-section').style.display = 'block';
+        }
+    }
+
+    function filterTopics() {
+        var subjectId = document.getElementById('subject_id').value;
+        var topicSelect = document.getElementById('topic_id');
+        var options = topicSelect.querySelectorAll('option');
+
+        for (var i = 0; i < options.length; i++) {
+            var opt = options[i];
+            if (opt.value === "") continue;
+            if (subjectId === "" || opt.getAttribute('data-subject') === subjectId) {
+                opt.style.display = 'block';
+            } else {
+                opt.style.display = 'none';
+            }
+        }
+        topicSelect.value = "";
+    }
+</script>
+{% endblock %}

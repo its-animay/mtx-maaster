@@ -639,7 +639,8 @@ def init_db() -> None:
 
     db = get_db()
     # Safety: do not wipe existing data; seed only if empty.
-    if db.list_subjects():
+    subjects, _ = db.list_subjects()
+    if subjects:
         return
 
     now = datetime.utcnow()
