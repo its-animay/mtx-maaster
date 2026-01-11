@@ -26,11 +26,15 @@ def create_test_series_endpoint(payload: TestSeriesCreate, db: Database = Depend
 
 @router.get("/test-series", response_model=PaginatedTestSeries)
 def list_test_series_endpoint(
+    exam_id: Optional[str] = None,
     target_exam_id: Optional[str] = None,
     series_type: Optional[str] = None,
     status: Optional[str] = None,
     is_active: Optional[bool] = None,
     tags: Optional[List[str]] = Query(default=None),
+    difficulty: Optional[int] = None,
+    language: Optional[str] = None,
+    language_code: Optional[str] = None,
     skip: int = 0,
     limit: int = 50,
     sort_by: str = "display_order",
@@ -39,11 +43,15 @@ def list_test_series_endpoint(
 ) -> PaginatedTestSeries:
     return list_test_series(
         db=db,
+        exam_id=exam_id,
         target_exam_id=target_exam_id,
         series_type=series_type,
         status=status,
         is_active=is_active,
         tags=tags,
+        difficulty=difficulty,
+        language=language,
+        language_code=language_code,
         skip=skip,
         limit=limit,
         sort_by=sort_by,

@@ -17,6 +17,7 @@ from app.schemas.test import (
     ValidationResult,
     TestStats,
 )
+from app.schemas.test_instructions import TestInstructionsCreate, TestInstructionsResponse
 from app.services.test_service import (
     add_questions_to_test,
     bulk_add_questions,
@@ -35,6 +36,7 @@ from app.services.test_service import (
     update_test,
     validate_test,
 )
+from app.services.test_instructions_service import get_test_instructions, upsert_test_instructions
 
 router = APIRouter()
 
@@ -144,3 +146,15 @@ def validate_test_endpoint(test_id: str, db: Database = Depends(get_db)) -> Vali
 @router.get("/tests/{test_id}/stats", response_model=TestStats)
 def test_stats_endpoint(test_id: str, db: Database = Depends(get_db)) -> TestStats:
     return test_stats(test_id, db)
+
+
+@router.get("/tests/{test_id}/instructions", response_model=TestInstructionsResponse)
+def get_test_instructions_endpoint(test_id: str, db: Database = Depends(get_db)) -> TestInstructionsResponse:
+    return get_test_instructions(test_id, db)
+
+
+@router.put("/tests/{test_id}/instructions", response_model=TestInstructionsResponse)
+def upsert_test_instructions_endpoint(
+    test_id: str, payload: TestInstructionsCreate, db: Database = Depends(get_db)
+) -> TestInstructionsResponse:
+    return upsert_test_instructions(test_id, payload, db)

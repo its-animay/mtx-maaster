@@ -39,17 +39,23 @@ def create_test_series(data: TestSeriesCreate, db: Optional[Database] = None) ->
     if db.get_test_series_by_slug(data.slug):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Series slug already exists")
 
-    if not db.get_exam_by_code(data.target_exam_id) and not db.get_exam(data.target_exam_id):
+    exam_ref = data.exam_id or data.target_exam_id
+    if exam_ref and not db.get_exam_by_code(exam_ref) and not db.get_exam(exam_ref):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Target exam not found")
 
     _validate_syllabus_coverage(data.syllabus_coverage, db)
 
     now = datetime.utcnow()
+    # Backfill legacy name if only title is provided
+    payload = data.model_dump()
+    if not payload.get("name") and payload.get("title"):
+        first_lang = next(iter(payload["title"].values())) if isinstance(payload["title"], dict) else None
+        payload["name"] = first_lang or ""
     series = TestSeriesResponse(
         series_id=f"ts_{uuid.uuid4()}",
         created_at=now,
         updated_at=now,
-        **data.model_dump(),
+        **payload,
     )
     db.insert_test_series(series)
     return series
@@ -65,11 +71,15 @@ def get_test_series(series_id: str, db: Optional[Database] = None) -> TestSeries
 
 def list_test_series(
     db: Optional[Database] = None,
+    exam_id: Optional[str] = None,
     target_exam_id: Optional[str] = None,
     series_type: Optional[str] = None,
     status: Optional[str] = None,
     is_active: Optional[bool] = None,
     tags: Optional[List[str]] = None,
+    difficulty: Optional[int] = None,
+    language: Optional[str] = None,
+    language_code: Optional[str] = None,
     skip: int = 0,
     limit: int = 50,
     sort_by: str = "display_order",
@@ -77,11 +87,15 @@ def list_test_series(
 ) -> PaginatedTestSeries:
     db = db or get_db()
     items, total = db.list_test_series(
+        exam_id=exam_id,
         target_exam_id=target_exam_id,
         series_type=series_type,
         status=status,
         is_active=is_active,
         tags=tags,
+        difficulty=difficulty,
+        language=language,
+        language_code=language_code,
         skip=skip,
         limit=limit,
         sort_by=sort_by,
@@ -96,8 +110,8 @@ def update_test_series(series_id: str, payload: TestSeriesUpdate, db: Optional[D
     existing = get_test_series(series_id, db)
 
     update_data = payload.model_dump(exclude_unset=True)
-    if "code" in update_data or "target_exam_id" in update_data:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot modify code or target_exam_id")
+    if "code" in update_data:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Cannot modify code")
 
     merged = existing.copy(update=update_data)
 
