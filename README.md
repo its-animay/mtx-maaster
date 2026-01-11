@@ -11,6 +11,10 @@ FastAPI + MongoDB service for managing a question bank: subjects, topics, exams,
 
 > On startup `init_db()` clears all collections, recreates indexes, and inserts sample Physics data. Remove/alter this call in `app/main.py` for persistent environments.
 
+## Frontend UIs
+- Jinja console: `http://localhost:8000/ui` (or `/ui/console`) is a FastAPI-served console that hits the public API for subjects, topics, exams, and schema_version=2 questions. Set API base (auto-fills to current origin + `/api/v1`), paste an API key (`X-API-Key`), fill forms, and view inline responses.
+- Static UI: a lightweight HTML version is still served at `/frontend` if the `frontend/` folder exists.
+
 ## Environment
 | Variable | Default | Required | Description |
 | --- | --- | --- | --- |

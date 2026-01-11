@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ project_name }} | Admin Console</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: radial-gradient(circle at 18% 20%, #0f1627 0, #0a0f1b 35%, #070b13 100%);
+      --panel: rgba(255, 255, 255, 0.06);
+      --panel-strong: rgba(255, 255, 255, 0.08);
+      --border: rgba(255, 255, 255, 0.14);
+      --text: #e9eef9;
+      --muted: #9fb1c7;
+      --accent: #7ce7c6;
+      --accent-strong: #5cd7b0;
+      --error: #ff6b6b;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 32px 16px 48px;
+    }
+    .frame {
+      max-width: 1200px;
+      margin: 0 auto;
+      background: linear-gradient(135deg, rgba(124, 231, 198, 0.05), rgba(255, 255, 255, 0.02));
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 28px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+    }
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 14px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    h1 { margin: 0; font-size: 26px; letter-spacing: -0.01em; }
+    p { margin: 4px 0 0; color: var(--muted); font-size: 14px; max-width: 760px; }
+    .tag {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card h2 {
+      margin: 0;
+      font-size: 18px;
+      letter-spacing: -0.01em;
+    }
+    .card small { color: var(--muted); }
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    label {
+      font-size: 13px;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+    input, textarea, select {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.09);
+      background: var(--panel-strong);
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+      transition: border 0.2s ease;
+    }
+    input:focus, textarea:focus, select:focus { border-color: var(--accent); }
+    textarea { resize: vertical; min-height: 90px; }
+    .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    .hint { font-size: 12px; color: var(--muted); }
+    .checkbox-inline { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+    button {
+      background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+      color: #062418;
+      border: none;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(124, 231, 198, 0.28);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    button:hover { transform: translateY(-1px); box-shadow: 0 14px 40px rgba(124, 231, 198, 0.35); }
+    button:active { transform: translateY(0); }
+    .actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .status {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 13px;
+      color: var(--muted);
+      white-space: pre-wrap;
+    }
+    .status strong { color: var(--text); }
+    .status .ok { color: var(--accent); }
+    .status .err { color: var(--error); }
+    .json {
+      margin-top: 8px;
+      background: #04070f;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      overflow-x: auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 13px;
+      color: #c5d4ee;
+    }
+    .pill {
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(124, 231, 198, 0.12);
+      color: var(--accent);
+      font-size: 11px;
+      letter-spacing: 0.3px;
+    }
+    @media (max-width: 720px) {
+      header { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <header>
+      <div>
+        <h1>{{ project_name }} Console</h1>
+        <p>Jinja-powered admin surface that speaks to the public API with your key. Configure your key/base once, then create subjects, topics, exams, and questions.</p>
+      </div>
+      <div class="tag">API prefix: {{ api_prefix }}</div>
+    </header>
+
+    <div class="card">
+      <h2>Connection</h2>
+      <div class="grid">
+        <div class="field">
+          <label>API Base <span class="pill">required</span></label>
+          <input id="apiBase" type="text" value="{{ api_base_default }}" placeholder="http://localhost:8000/api/v1">
+          <div class="hint">Defaults to current host + API prefix.</div>
+        </div>
+        <div class="field">
+          <label>API Key <span class="pill">X-API-Key</span></label>
+          <input id="apiKey" type="password" autocomplete="off" placeholder="raw API key">
+          <div class="hint">Stored in localStorage for this browser only.</div>
+        </div>
+        <div class="field">
+          <label>Quick Checks</label>
+          <div class="actions">
+            <button type="button" id="saveConnection">Save & Ping</button>
+            <button type="button" id="loadSubjects">Load Subjects</button>
+          </div>
+          <div class="hint">Pings /public/ping then caches your key.</div>
+        </div>
+      </div>
+      <div class="status" id="connectionStatus">Waiting for input…</div>
+    </div>
+
+    <div class="grid" style="margin-top: 14px;">
+      <div class="card">
+        <h2>Subjects</h2>
+        <small>Create a subject via POST /subjects.</small>
+        <div class="field">
+          <label>Name</label>
+          <input id="subjectName" type="text" placeholder="Physics (Grade 11)" required>
+        </div>
+        <div class="field">
+          <label>Slug</label>
+          <input id="subjectSlug" type="text" placeholder="physics-g11">
+          <div class="hint">Auto-fills from name until edited.</div>
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <textarea id="subjectDesc" placeholder="Grade 11 physics syllabus for CBSE board."></textarea>
+        </div>
+        <div class="field">
+          <label>Tags <span class="hint">(comma separated)</span></label>
+          <input id="subjectTags" type="text" placeholder="grade-11, cbse, science">
+        </div>
+        <div class="field">
+          <label>Metadata JSON</label>
+          <textarea id="subjectMeta" placeholder='{"owner":"curriculum-team","version":"2024-25"}'></textarea>
+        </div>
+        <div class="field">
+          <label>ID <span class="hint">(optional)</span></label>
+          <input id="subjectId" type="text" placeholder="subject_custom_id">
+        </div>
+        <div class="checkbox-inline">
+          <input id="subjectActive" type="checkbox" checked>
+          <label for="subjectActive">Active</label>
+        </div>
+        <div class="actions">
+          <button type="button" id="submitSubject">Create Subject</button>
+          <button type="button" id="listSubjects">List Subjects</button>
+        </div>
+        <div class="status" id="subjectStatus">Awaiting action…</div>
+      </div>
+
+      <div class="card">
+        <h2>Topics</h2>
+        <small>Create a topic via POST /topics (subject required).</small>
+        <div class="field">
+          <label>Subject <span class="hint">(load subjects first)</span></label>
+          <select id="topicSubject"></select>
+        </div>
+        <div class="field">
+          <label>Name</label>
+          <input id="topicName" type="text" placeholder="Thermodynamics">
+        </div>
+        <div class="field">
+          <label>Slug</label>
+          <input id="topicSlug" type="text" placeholder="thermodynamics">
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <textarea id="topicDesc" placeholder="Thermodynamics fundamentals."></textarea>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label>Difficulty Weight</label>
+            <input id="difficultyWeight" type="number" min="0" max="1" step="0.05" value="0.5">
+          </div>
+          <div class="field" style="flex:1">
+            <label>Bloom Level</label>
+            <input id="bloomLevel" type="text" placeholder="Analyze">
+          </div>
+        </div>
+        <div class="field">
+          <label>Tags <span class="hint">(comma separated)</span></label>
+          <input id="topicTags" type="text" placeholder="thermo, heat">
+        </div>
+        <div class="field">
+          <label>Related Topic IDs <span class="hint">(comma)</span></label>
+          <input id="topicRelated" type="text" placeholder="topic_heat, topic_energy">
+        </div>
+        <div class="field">
+          <label>Prerequisite Topic IDs <span class="hint">(comma)</span></label>
+          <input id="topicPrereq" type="text" placeholder="topic_basics">
+        </div>
+        <div class="field">
+          <label>Metadata JSON</label>
+          <textarea id="topicMeta" placeholder='{"owner":"team-a"}'></textarea>
+        </div>
+        <div class="checkbox-inline">
+          <input id="topicActive" type="checkbox" checked>
+          <label for="topicActive">Active</label>
+        </div>
+        <div class="actions">
+          <button type="button" id="submitTopic">Create Topic</button>
+          <button type="button" id="listTopics">List Topics (selected subject)</button>
+        </div>
+        <div class="status" id="topicStatus">Awaiting action…</div>
+      </div>
+    </div>
+
+    <div class="grid" style="margin-top: 14px;">
+      <div class="card">
+        <h2>Exams</h2>
+        <small>Create an exam via POST /exams.</small>
+        <div class="field">
+          <label>Code</label>
+          <input id="examCode" type="text" placeholder="JEE_MAIN">
+        </div>
+        <div class="field">
+          <label>Name</label>
+          <input id="examName" type="text" placeholder="JEE Main">
+        </div>
+        <div class="field">
+          <label>Description</label>
+          <textarea id="examDesc" placeholder="JEE Main core syllabus."></textarea>
+        </div>
+        <div class="field">
+          <label>Syllabus JSON <span class="hint">(subject/topic array)</span></label>
+          <textarea id="examSyllabus" placeholder='[{"subject_id":"subject_physics","topic_ids":["topic_thermodynamics"],"weight":1.0}]'></textarea>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label>Version</label>
+            <input id="examVersion" type="text" placeholder="2024.1">
+          </div>
+          <div class="checkbox-inline" style="flex:1">
+            <input id="examActive" type="checkbox" checked>
+            <label for="examActive">Active</label>
+          </div>
+        </div>
+        <div class="field">
+          <label>Metadata JSON</label>
+          <textarea id="examMeta" placeholder='{"region":"IN"}'></textarea>
+        </div>
+        <div class="field">
+          <label>Created By</label>
+          <input id="examCreatedBy" type="text" placeholder="system">
+        </div>
+        <div class="actions">
+          <button type="button" id="submitExam">Create Exam</button>
+          <button type="button" id="listExams">List Exams</button>
+        </div>
+        <div class="status" id="examStatus">Awaiting action…</div>
+      </div>
+
+      <div class="card">
+        <h2>Questions</h2>
+        <small>Create schema_version=2 questions via POST /questions.</small>
+        <div class="field">
+          <label>Type</label>
+          <select id="questionType">
+            <option value="single_choice">Single Choice</option>
+            <option value="multi_choice">Multi Choice</option>
+            <option value="true_false">True/False</option>
+            <option value="integer">Integer</option>
+            <option value="short_text">Short Text</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Subject</label>
+          <select id="questionSubject"></select>
+        </div>
+        <div class="field">
+          <label>Topics <span class="hint">(hold Ctrl/Cmd to multi-select)</span></label>
+          <select id="questionTopics" multiple size="4"></select>
+        </div>
+        <div class="field">
+          <label>Question Text</label>
+          <textarea id="questionText" placeholder="What happens to internal energy when heat is added at constant volume?"></textarea>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label>Difficulty (1-5)</label>
+            <input id="questionDifficulty" type="number" min="1" max="5" value="2">
+          </div>
+          <div class="field" style="flex:1">
+            <label>Language</label>
+            <input id="questionLanguage" type="text" value="en">
+          </div>
+        </div>
+        <div class="field">
+          <label>Target Exam IDs <span class="hint">(comma)</span></label>
+          <input id="questionTargetExams" type="text" placeholder="JEE_MAIN">
+        </div>
+        <div class="field">
+          <label>Tags <span class="hint">(comma)</span></label>
+          <input id="questionTags" type="text" placeholder="thermo, first-law">
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label>Meta Source</label>
+            <input id="questionSource" type="text" placeholder="curated">
+          </div>
+          <div class="field" style="flex:1">
+            <label>Meta Created By</label>
+            <input id="questionCreatedBy" type="text" placeholder="editor-1">
+          </div>
+        </div>
+        <div class="field">
+          <label>Estimated Time (sec)</label>
+          <input id="questionTime" type="number" min="0" placeholder="90">
+        </div>
+        <div class="field">
+          <label>Solution Explanation</label>
+          <textarea id="solutionText" placeholder="Internal energy rises equal to heat added."></textarea>
+        </div>
+        <div class="field">
+          <label>Solution Steps <span class="hint">(one per line)</span></label>
+          <textarea id="solutionSteps" placeholder="Apply first law of thermodynamics&#10;dU = Q at constant volume"></textarea>
+        </div>
+        <div class="field">
+          <label>Solution References <span class="hint">(one per line)</span></label>
+          <textarea id="solutionRefs" placeholder="NCERT Chapter 5&#10;MIT OCW 8.01"></textarea>
+        </div>
+        <div class="row">
+          <div class="field" style="flex:1">
+            <label>Usage Status</label>
+            <select id="usageStatus">
+              <option value="draft">draft</option>
+              <option value="published">published</option>
+            </select>
+          </div>
+          <div class="field" style="flex:1">
+            <label>Visibility</label>
+            <select id="usageVisibility">
+              <option value="public">public</option>
+              <option value="private">private</option>
+            </select>
+          </div>
+        </div>
+        <div class="checkbox-inline">
+          <input id="questionActive" type="checkbox" checked>
+          <label for="questionActive">Active</label>
+        </div>
+        <div class="field" id="choiceBlock">
+          <label>Options (choice types)</label>
+          <div class="row">
+            <input id="optA" type="text" placeholder="Option A">
+            <label class="checkbox-inline"><input type="checkbox" id="optA_correct"> Correct</label>
+          </div>
+          <div class="row">
+            <input id="optB" type="text" placeholder="Option B">
+            <label class="checkbox-inline"><input type="checkbox" id="optB_correct"> Correct</label>
+          </div>
+          <div class="row">
+            <input id="optC" type="text" placeholder="Option C">
+            <label class="checkbox-inline"><input type="checkbox" id="optC_correct"> Correct</label>
+          </div>
+          <div class="row">
+            <input id="optD" type="text" placeholder="Option D">
+            <label class="checkbox-inline"><input type="checkbox" id="optD_correct"> Correct</label>
+          </div>
+          <div class="hint">Single choice: pick one correct. Multi choice: pick multiple.</div>
+        </div>
+        <div class="field" id="trueFalseBlock" style="display:none;">
+          <label>True/False Answer</label>
+          <select id="trueFalseAnswer">
+            <option value="true">True</option>
+            <option value="false">False</option>
+          </select>
+        </div>
+        <div class="field" id="valueBlock" style="display:none;">
+          <label>Answer Value</label>
+          <input id="valueAnswer" type="text" placeholder="42">
+        </div>
+        <div class="actions">
+          <button type="button" id="submitQuestion">Create Question</button>
+          <button type="button" id="listQuestions">List Questions (preview)</button>
+        </div>
+        <div class="status" id="questionStatus">Awaiting action…</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const apiBaseInput = document.getElementById('apiBase');
+    const apiKeyInput = document.getElementById('apiKey');
+    const connectionStatus = document.getElementById('connectionStatus');
+    const subjectStatus = document.getElementById('subjectStatus');
+    const topicStatus = document.getElementById('topicStatus');
+    const examStatus = document.getElementById('examStatus');
+    const questionStatus = document.getElementById('questionStatus');
+    const subjectSlugInput = document.getElementById('subjectSlug');
+    const subjectNameInput = document.getElementById('subjectName');
+    const topicSubjectSelect = document.getElementById('topicSubject');
+    const questionSubjectSelect = document.getElementById('questionSubject');
+    const questionTopicsSelect = document.getElementById('questionTopics');
+
+    const defaultApiBase = {{ api_base_default | tojson }};
+
+    const state = {
+      subjects: [],
+      topics: {},
+    };
+
+    const safeJSON = (value) => JSON.stringify(value, null, 2);
+
+    const setStatus = (el, msg, type = 'info', data = null) => {
+      const cls = type === 'error' ? 'err' : type === 'success' ? 'ok' : '';
+      let html = `<strong class="${cls}">${msg}</strong>`;
+      if (data) html += `<pre class="json">${data}</pre>`;
+      el.innerHTML = html;
+    };
+
+    const parseCSV = (value) =>
+      value
+        .split(',')
+        .map((v) => v.trim())
+        .filter(Boolean);
+
+    const parseJSONField = (raw) => {
+      if (!raw.trim()) return undefined;
+      return JSON.parse(raw);
+    };
+
+    const cleanObject = (obj) =>
+      Object.fromEntries(Object.entries(obj).filter(([, v]) => v !== undefined && v !== null && v !== ''));
+
+    const getApiBase = () => {
+      const base = (apiBaseInput.value || '').trim() || defaultApiBase;
+      return base.endsWith('/') ? base.slice(0, -1) : base;
+    };
+
+    const apiFetch = async (path, options = {}) => {
+      const base = getApiBase();
+      const apiKey = (apiKeyInput.value || '').trim();
+      const url = path.startsWith('http') ? path : `${base}${path.startsWith('/') ? path : `/${path}`}`;
+      const headers = {
+        'Content-Type': 'application/json',
+        ...(options.headers || {}),
+      };
+      if (apiKey) headers['X-API-Key'] = apiKey;
+      const res = await fetch(url, { ...options, headers });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const detail = body?.detail || body?.message || `HTTP ${res.status}`;
+        throw new Error(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      }
+      return body;
+    };
+
+    const persistKey = () => {
+      if (apiKeyInput.value) {
+        window.localStorage.setItem('mqdb_api_key', apiKeyInput.value.trim());
+      }
+    };
+
+    // Prefill stored key
+    const storedKey = window.localStorage.getItem('mqdb_api_key');
+    if (storedKey) {
+      apiKeyInput.value = storedKey;
+    }
+
+    // Auto-slug from name until user edits slug directly.
+    let slugTouched = false;
+    subjectNameInput.addEventListener('input', () => {
+      if (slugTouched) return;
+      const slug = subjectNameInput.value
+        .toLowerCase()
+        .trim()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 80);
+      subjectSlugInput.value = slug;
+    });
+    subjectSlugInput.addEventListener('input', () => {
+      slugTouched = true;
+    });
+
+    const refreshSubjectSelects = () => {
+      const selects = [topicSubjectSelect, questionSubjectSelect];
+      selects.forEach((sel) => {
+        sel.innerHTML = '';
+        state.subjects.forEach((s) => {
+          const opt = document.createElement('option');
+          opt.value = s.id;
+          opt.textContent = `${s.name} (${s.slug})`;
+          sel.appendChild(opt);
+        });
+      });
+      if (state.subjects.length) {
+        const firstId = state.subjects[0].id;
+        topicSubjectSelect.value = topicSubjectSelect.value || firstId;
+        questionSubjectSelect.value = questionSubjectSelect.value || firstId;
+        loadTopics(firstId, false);
+      }
+    };
+
+    const refreshTopicSelect = (subjectId) => {
+      questionTopicsSelect.innerHTML = '';
+      const topics = state.topics[subjectId] || [];
+      topics.forEach((t) => {
+        const opt = document.createElement('option');
+        opt.value = t.id;
+        opt.textContent = `${t.name} (${t.slug})`;
+        questionTopicsSelect.appendChild(opt);
+      });
+    };
+
+    const loadSubjects = async () => {
+      setStatus(connectionStatus, 'Loading subjects…');
+      try {
+        const data = await apiFetch('/subjects?limit=200');
+        state.subjects = data.items || [];
+        refreshSubjectSelects();
+        setStatus(connectionStatus, `Loaded ${state.subjects.length} subjects.`, 'success');
+      } catch (err) {
+        setStatus(connectionStatus, 'Failed to load subjects (check API key/base).', 'error', err.message);
+      }
+    };
+
+    const loadTopics = async (subjectId, showStatus = true) => {
+      if (!subjectId) return;
+      if (showStatus) setStatus(topicStatus, 'Loading topics…');
+      try {
+        const data = await apiFetch(`/topics?subject_id=${encodeURIComponent(subjectId)}`);
+        state.topics[subjectId] = data || [];
+        refreshTopicSelect(subjectId);
+        if (showStatus) setStatus(topicStatus, `Loaded ${state.topics[subjectId].length} topics.`, 'success');
+      } catch (err) {
+        if (showStatus) setStatus(topicStatus, 'Failed to load topics.', 'error', err.message);
+      }
+    };
+
+    document.getElementById('saveConnection').addEventListener('click', async () => {
+      persistKey();
+      try {
+        const data = await apiFetch('/public/ping');
+        setStatus(connectionStatus, 'Ping successful.', 'success', safeJSON(data));
+        await loadSubjects();
+      } catch (err) {
+        setStatus(connectionStatus, 'Ping failed.', 'error', err.message);
+      }
+    });
+
+    document.getElementById('loadSubjects').addEventListener('click', loadSubjects);
+
+    topicSubjectSelect.addEventListener('change', (e) => {
+      loadTopics(e.target.value);
+    });
+    questionSubjectSelect.addEventListener('change', (e) => {
+      loadTopics(e.target.value);
+    });
+
+    // Subjects create/list
+    document.getElementById('submitSubject').addEventListener('click', async () => {
+      try {
+        const payload = cleanObject({
+          id: document.getElementById('subjectId').value.trim() || undefined,
+          name: subjectNameInput.value.trim(),
+          slug: subjectSlugInput.value.trim(),
+          description: document.getElementById('subjectDesc').value.trim() || undefined,
+          tags: parseCSV(document.getElementById('subjectTags').value),
+          metadata: parseJSONField(document.getElementById('subjectMeta').value || ''),
+          is_active: document.getElementById('subjectActive').checked,
+        });
+        setStatus(subjectStatus, 'Creating subject…');
+        const data = await apiFetch('/subjects', { method: 'POST', body: JSON.stringify(payload) });
+        setStatus(subjectStatus, 'Subject created.', 'success', safeJSON(data));
+        await loadSubjects();
+      } catch (err) {
+        setStatus(subjectStatus, 'Failed to create subject.', 'error', err.message);
+      }
+    });
+
+    document.getElementById('listSubjects').addEventListener('click', async () => {
+      try {
+        setStatus(subjectStatus, 'Listing subjects…');
+        const data = await apiFetch('/subjects?limit=200');
+        setStatus(subjectStatus, `Fetched ${data.items?.length || 0} subjects.`, 'success', safeJSON(data));
+        state.subjects = data.items || [];
+        refreshSubjectSelects();
+      } catch (err) {
+        setStatus(subjectStatus, 'Failed to list subjects.', 'error', err.message);
+      }
+    });
+
+    // Topics create/list
+    document.getElementById('submitTopic').addEventListener('click', async () => {
+      try {
+        const subjectId = topicSubjectSelect.value;
+        const payload = cleanObject({
+          subject_id: subjectId,
+          name: document.getElementById('topicName').value.trim(),
+          slug: document.getElementById('topicSlug').value.trim(),
+          description: document.getElementById('topicDesc').value.trim() || undefined,
+          difficulty_weight: Number(document.getElementById('difficultyWeight').value || 0.5),
+          bloom_level: document.getElementById('bloomLevel').value.trim() || undefined,
+          related_topic_ids: parseCSV(document.getElementById('topicRelated').value),
+          prerequisite_topic_ids: parseCSV(document.getElementById('topicPrereq').value),
+          tags: parseCSV(document.getElementById('topicTags').value),
+          metadata: parseJSONField(document.getElementById('topicMeta').value || ''),
+          is_active: document.getElementById('topicActive').checked,
+        });
+        setStatus(topicStatus, 'Creating topic…');
+        const data = await apiFetch('/topics', { method: 'POST', body: JSON.stringify(payload) });
+        setStatus(topicStatus, 'Topic created.', 'success', safeJSON(data));
+        await loadTopics(subjectId, false);
+      } catch (err) {
+        setStatus(topicStatus, 'Failed to create topic.', 'error', err.message);
+      }
+    });
+
+    document.getElementById('listTopics').addEventListener('click', async () => {
+      const subjectId = topicSubjectSelect.value;
+      await loadTopics(subjectId, true);
+      if (state.topics[subjectId]) {
+        setStatus(topicStatus, `Fetched ${state.topics[subjectId].length} topics.`, 'success', safeJSON(state.topics[subjectId]));
+      }
+    });
+
+    // Exams
+    document.getElementById('submitExam').addEventListener('click', async () => {
+      try {
+        const payload = cleanObject({
+          code: document.getElementById('examCode').value.trim(),
+          name: document.getElementById('examName').value.trim(),
+          description: document.getElementById('examDesc').value.trim() || undefined,
+          syllabus: parseJSONField(document.getElementById('examSyllabus').value || '[]') || [],
+          version: document.getElementById('examVersion').value.trim() || undefined,
+          is_active: document.getElementById('examActive').checked,
+          metadata: parseJSONField(document.getElementById('examMeta').value || ''),
+          created_by: document.getElementById('examCreatedBy').value.trim() || undefined,
+        });
+        setStatus(examStatus, 'Creating exam…');
+        const data = await apiFetch('/exams', { method: 'POST', body: JSON.stringify(payload) });
+        setStatus(examStatus, 'Exam created.', 'success', safeJSON(data));
+      } catch (err) {
+        setStatus(examStatus, 'Failed to create exam.', 'error', err.message);
+      }
+    });
+
+    document.getElementById('listExams').addEventListener('click', async () => {
+      try {
+        setStatus(examStatus, 'Listing exams…');
+        const data = await apiFetch('/exams');
+        setStatus(examStatus, `Fetched ${data.length} exams.`, 'success', safeJSON(data));
+      } catch (err) {
+        setStatus(examStatus, 'Failed to list exams.', 'error', err.message);
+      }
+    });
+
+    // Questions
+    const questionTypeSelect = document.getElementById('questionType');
+    const choiceBlock = document.getElementById('choiceBlock');
+    const trueFalseBlock = document.getElementById('trueFalseBlock');
+    const valueBlock = document.getElementById('valueBlock');
+
+    const updateQuestionTypeUI = () => {
+      const type = questionTypeSelect.value;
+      choiceBlock.style.display = (type === 'single_choice' || type === 'multi_choice') ? 'block' : 'none';
+      trueFalseBlock.style.display = (type === 'true_false') ? 'block' : 'none';
+      valueBlock.style.display = (type === 'integer' || type === 'short_text') ? 'block' : 'none';
+    };
+    questionTypeSelect.addEventListener('change', updateQuestionTypeUI);
+    updateQuestionTypeUI();
+
+    const buildChoicePayload = (type) => {
+      const entries = [
+        { id: 'optA', text: document.getElementById('optA').value.trim(), correct: document.getElementById('optA_correct').checked },
+        { id: 'optB', text: document.getElementById('optB').value.trim(), correct: document.getElementById('optB_correct').checked },
+        { id: 'optC', text: document.getElementById('optC').value.trim(), correct: document.getElementById('optC_correct').checked },
+        { id: 'optD', text: document.getElementById('optD').value.trim(), correct: document.getElementById('optD_correct').checked },
+      ].filter((o) => o.text);
+
+      if (!entries.length) throw new Error('At least one option is required.');
+
+      const options = entries.map((o) => ({ id: o.id, text: o.text }));
+      const correctIds = entries.filter((o) => o.correct).map((o) => o.id);
+      if (type === 'single_choice') {
+        if (correctIds.length !== 1) throw new Error('Pick exactly one correct option for single choice.');
+        return { options, answer_key: { type: 'single', option_id: correctIds[0] } };
+      }
+      if (type === 'multi_choice') {
+        if (!correctIds.length) throw new Error('Pick at least one correct option for multi choice.');
+        return { options, answer_key: { type: 'multi', option_ids: correctIds } };
+      }
+      return { options, answer_key: null };
+    };
+
+    const buildQuestionPayload = () => {
+      const type = questionTypeSelect.value;
+      const subjectId = questionSubjectSelect.value;
+      const topicIds = Array.from(questionTopicsSelect.selectedOptions).map((opt) => opt.value);
+      const base = {
+        text: document.getElementById('questionText').value.trim(),
+        type,
+        taxonomy: {
+          subject_id: subjectId || null,
+          topic_ids: topicIds,
+          target_exam_ids: parseCSV(document.getElementById('questionTargetExams').value),
+        },
+        difficulty: Number(document.getElementById('questionDifficulty').value || 1),
+        tags: parseCSV(document.getElementById('questionTags').value),
+        language: document.getElementById('questionLanguage').value.trim() || 'en',
+        usage: {
+          status: document.getElementById('usageStatus').value,
+          is_active: document.getElementById('questionActive').checked,
+          visibility: document.getElementById('usageVisibility').value,
+        },
+        meta: cleanObject({
+          estimated_time_sec: document.getElementById('questionTime').value
+            ? Number(document.getElementById('questionTime').value)
+            : undefined,
+          source: document.getElementById('questionSource').value.trim() || undefined,
+          created_by: document.getElementById('questionCreatedBy').value.trim() || undefined,
+        }),
+      };
+
+      // Solution
+      const solutionText = document.getElementById('solutionText').value.trim();
+      const solutionSteps = document
+        .getElementById('solutionSteps')
+        .value.split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const solutionRefs = document
+        .getElementById('solutionRefs')
+        .value.split('\n')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      if (solutionText || solutionSteps.length || solutionRefs.length) {
+        base.solution = {
+          explanation: solutionText || undefined,
+          steps: solutionSteps,
+          references: solutionRefs,
+        };
+      }
+
+      if (type === 'single_choice' || type === 'multi_choice') {
+        const { options, answer_key } = buildChoicePayload(type);
+        base.options = options;
+        base.answer_key = answer_key;
+      } else if (type === 'true_false') {
+        base.options = [
+          { id: 'true', text: 'True' },
+          { id: 'false', text: 'False' },
+        ];
+        base.answer_key = { type: 'single', option_id: document.getElementById('trueFalseAnswer').value };
+      } else if (type === 'integer' || type === 'short_text') {
+        const val = document.getElementById('valueAnswer').value.trim();
+        if (!val) throw new Error('Answer value is required for this question type.');
+        base.answer_key = { type: 'value', value: val };
+        base.options = [];
+      }
+      return base;
+    };
+
+    document.getElementById('submitQuestion').addEventListener('click', async () => {
+      try {
+        const payload = buildQuestionPayload();
+        setStatus(questionStatus, 'Creating question…');
+        const data = await apiFetch('/questions', { method: 'POST', body: JSON.stringify(payload) });
+        setStatus(questionStatus, 'Question created.', 'success', safeJSON(data));
+      } catch (err) {
+        setStatus(questionStatus, 'Failed to create question.', 'error', err.message);
+      }
+    });
+
+    document.getElementById('listQuestions').addEventListener('click', async () => {
+      try {
+        setStatus(questionStatus, 'Listing questions…');
+        const data = await apiFetch('/questions/list?limit=10');
+        setStatus(questionStatus, `Fetched ${data.items?.length || 0} questions.`, 'success', safeJSON(data));
+      } catch (err) {
+        setStatus(questionStatus, 'Failed to list questions.', 'error', err.message);
+      }
+    });
+
+    // Initial load
+    if (apiKeyInput.value) {
+      loadSubjects();
+    } else {
+      setStatus(connectionStatus, 'Waiting for API base/key. Save & Ping to load subjects.');
+    }
+  </script>
+</body>
+</html>
