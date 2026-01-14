@@ -30,6 +30,44 @@
         <label for="description">Description:</label>
         <textarea id="description" name="description" rows="3"></textarea>
     </div>
+
+    <details>
+        <summary style="cursor: pointer; margin-bottom: 15px; font-weight: bold;">Advanced / Optional Fields</summary>
+        <div style="padding-left: 15px; border-left: 2px solid #eee;">
+            <div class="form-group">
+                <label for="bloom_level">Bloom Level:</label>
+                <input type="text" id="bloom_level" name="bloom_level" placeholder="Remember, Apply, Analyze...">
+            </div>
+
+            <div class="form-group">
+                <label for="related_topic_ids">Related Topic IDs (comma-separated):</label>
+                <input type="text" id="related_topic_ids" name="related_topic_ids">
+            </div>
+
+            <div class="form-group">
+                <label for="prerequisite_topic_ids">Prerequisite Topic IDs (comma-separated):</label>
+                <input type="text" id="prerequisite_topic_ids" name="prerequisite_topic_ids">
+            </div>
+
+            <div class="form-group">
+                <label for="tags">Tags (comma-separated):</label>
+                <input type="text" id="tags" name="tags">
+            </div>
+
+            <div class="form-group">
+                <label for="metadata">Metadata (JSON):</label>
+                <textarea id="metadata" name="metadata" rows="4"></textarea>
+                <small style="color: #666;">Enter valid JSON or leave empty.</small>
+            </div>
+
+            <div class="form-group">
+                <label>
+                    <input type="checkbox" id="is_active" name="is_active" value="true" checked>
+                    Is Active
+                </label>
+            </div>
+        </div>
+    </details>
     <button type="submit" class="btn-submit">Create Topic</button>
 </form>
 {% endblock %}
